@@ -3,8 +3,8 @@
 import http from 'http';
 import fs from 'fs';
 import path from 'path';
-import url from 'url';
 import { fileURLToPath } from 'url';
+import { URL } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -110,9 +110,15 @@ function simulateAIProcessing(documentType, fileName) {
 }
 
 const server = http.createServer((req, res) => {
-  const parsedUrl = url.parse(req.url, true);
-  const pathname = parsedUrl.pathname;
-  const query = parsedUrl.query;
+  let pathname = req.url.split('?')[0];
+  let queryString = req.url.split('?')[1] || '';
+  const query = {};
+  if (queryString) {
+    queryString.split('&').forEach(pair => {
+      const [key, value] = pair.split('=');
+      query[decodeURIComponent(key)] = decodeURIComponent(value || '');
+    });
+  }
 
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -127,25 +133,44 @@ const server = http.createServer((req, res) => {
 
   // Serve HTML
   if (pathname === '/' || pathname === '/index.html') {
-    try {
-      let content;
-      try {
-        content = fs.readFileSync(path.join(__dirname, 'advanced.html'), 'utf8');
-      } catch {
-        try {
-          content = fs.readFileSync(path.join(__dirname, 'simple.html'), 'utf8');
-        } catch {
-          content = fs.readFileSync(path.join(__dirname, 'app.html'), 'utf8');
-        }
-      }
-      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-      res.end(content);
-      return;
-    } catch (e) {
-      res.writeHead(500, { 'Content-Type': 'text/plain' });
-      res.end('Error loading HTML');
-      return;
-    }
+    const html = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AI Document Processor</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:linear-gradient(135deg,#667eea,#764ba2);min-height:100vh;padding:20px}
+.container{max-width:1000px;margin:0 auto;background:white;border-radius:8px;padding:30px;box-shadow:0 8px 32px rgba(0,0,0,0.2)}h1{color:#2c3e50;margin-bottom:30px;text-align:center}
+.section{margin-bottom:30px;padding:20px;background:#f8f9fa;border-radius:6px;border-left:4px solid #3498db}
+.section h2{color:#2c3e50;margin-bottom:15px}.form-group{margin:15px 0}.form-group label{display:block;margin-bottom:8px;font-weight:bold;color:#2c3e50}
+.form-group input,.form-group select{width:100%;padding:10px;border:1px solid #ddd;border-radius:4px}
+button{background:#3498db;color:white;padding:10px 20px;border:none;border-radius:4px;cursor:pointer;font-weight:bold;margin-right:10px}
+button:hover{background:#2980b9}button.success{background:#27ae60}button.success:hover{background:#229954}
+.doc-item{background:white;padding:15px;margin:10px 0;border-left:4px solid #27ae60;border-radius:4px}.doc-item h3{color:#2c3e50;margin-bottom:5px}
+.badge{display:inline-block;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:bold;margin:5px 0}.badge.pending{background:#f39c12;color:white}
+.badge.approved{background:#27ae60;color:white}.login{max-width:400px;margin:50px auto;padding:30px;background:white;border-radius:8px;text-align:center}
+.login h2{margin-bottom:20px;color:#2c3e50}.login input{display:block;width:100%;margin:10px 0;padding:10px;border:1px solid #ddd;border-radius:4px}
+.msg{padding:12px;margin:15px 0;border-radius:4px}.success-msg{background:#d4edda;color:#155724}.error-msg{background:#f8d7da;color:#721c24}.hidden{display:none}
+</style></head><body>
+<div id="login" class="login"><h2>AI Document Processor</h2>
+<input type="text" id="username" placeholder="Username" /><input type="password" id="password" placeholder="Password" />
+<button onclick="doLogin()" style="width:100%;margin-top:15px">Login</button><p style="margin-top:15px;font-size:12px;color:#7f8c8d">Demo: john_reviewer / pass123</p></div>
+<div id="app" class="hidden"><div class="container"><h1>AI Document Processor</h1><button onclick="doLogout()">Logout</button>
+<div class="section"><h2>Upload Document</h2><input type="text" id="docName" placeholder="Document name" />
+<select id="docType"><option>invoice</option><option>receipt</option><option>contract</option></select>
+<button class="success" onclick="upload()">Upload</button><div id="msg"></div></div>
+<div class="section"><h2>Documents</h2><input type="text" id="search" placeholder="Search..." onkeyup="loadDocs()" style="width:100%;padding:10px;margin-bottom:15px;" />
+<div id="list"></div></div></div></div>
+<script>const API='http://localhost:3000/api';let user=null;
+function doLogin(){const u=document.getElementById('username').value,p=document.getElementById('password').value;
+fetch(API+'/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})})
+.then(r=>r.json()).then(d=>{if(d.user){user=d.user;document.getElementById('login').classList.add('hidden');document.getElementById('app').classList.remove('hidden');loadDocs();}else alert('Login failed')}).catch(e=>alert(e));}
+function doLogout(){user=null;document.getElementById('login').classList.remove('hidden');document.getElementById('app').classList.add('hidden');}
+function upload(){const n=document.getElementById('docName').value,t=document.getElementById('docType').value;
+fetch(API+'/documents/upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fileName:n||'Doc',documentType:t})})
+.then(r=>r.json()).then(d=>{document.getElementById('msg').innerHTML='<div class="msg success-msg">Uploaded! Confidence: '+(d.confidence*100).toFixed(0)+'%</div>';loadDocs();}).catch(e=>alert(e));}
+function loadDocs(){const s=document.getElementById('search').value;
+fetch(API+'/documents?search='+s).then(r=>r.json()).then(d=>{const h=d.items||[];document.getElementById('list').innerHTML=h.length?h.map(x=>'<div class="doc-item"><h3>'+x.fileName+'</h3><p>Type: '+x.documentType+' | Status: <span class="badge '+x.reviewStatus+'">'+x.reviewStatus+'</span> | Confidence: '+(x.confidence*100).toFixed(0)+'%</p></div>').join(''):'<p>No documents</p>'}).catch(e=>console.error(e));}
+</script></body></html>`;
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(html);
+    return;
   }
 
   // ===== AUTH ENDPOINTS =====
