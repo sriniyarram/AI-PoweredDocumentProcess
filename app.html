@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Document Processor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1976d2;
+            --secondary: #dc004e;
+            --success: #4caf50;
+            --error: #f44336;
+            --warning: #ff9800;
+            --info: #2196f3;
+            --light: #f5f5f5;
+            --dark: #333;
+            --border: #ddd;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            background-color: #fafafa;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        html, body, #root {
+            height: 100%;
+            width: 100%;
+        }
+
+        .navbar {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a, .nav-links button {
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 1rem;
+            transition: opacity 0.3s;
+        }
+
+        .nav-links a:hover, .nav-links button:hover {
+            opacity: 0.8;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            min-height: calc(100vh - 200px);
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        h2 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+        }
+
+        h3 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="number"],
+        input[type="date"],
+        input[type="file"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="number"]:focus,
+        input[type="date"]:focus,
+        input[type="file"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #1565c0;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: #f0f0f0;
+            color: var(--dark);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #45a049;
+        }
+
+        .btn-error {
+            background-color: var(--error);
+            color: white;
+        }
+
+        .btn-error:hover {
+            background-color: #da190b;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .alert-success {
+            background-color: #c8e6c9;
+            color: #2e7d32;
+            border: 1px solid #81c784;
+        }
+
+        .alert-error {
+            background-color: #ffcdd2;
+            color: #c62828;
+            border: 1px solid #ef5350;
+        }
+
+        .alert-info {
+            background-color: #bbdefb;
+            color: #1565c0;
+            border: 1px solid #64b5f6;
+        }
+
+        .alert-warning {
+            background-color: #ffe0b2;
+            color: #e65100;
+            border: 1px solid #ffb74d;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--primary);
+            border-radius: 8px;
+            padding: 3rem;
+            text-align: center;
+            background-color: #f5f5f5;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 1.5rem;
+        }
+
+        .upload-area:hover {
+            background-color: #e3f2fd;
+            border-color: #1565c0;
+        }
+
+        .upload-area.drag-over {
+            background-color: #e3f2fd;
+            border-color: #1565c0;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .table thead {
+            background-color: var(--light);
+        }
+
+        .table th,
+        .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background-color: #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .badge-error {
+            background-color: #ffcdd2;
+            color: #c62828;
+        }
+
+        .badge-warning {
+            background-color: #ffe0b2;
+            color: #e65100;
+        }
+
+        .badge-info {
+            background-color: #bbdefb;
+            color: #1565c0;
+        }
+
+        .document-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .document-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .document-card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+
+        .document-card h4 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .document-card p {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .document-card .badge {
+            margin-right: 0.5rem;
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(to right, #4caf50, #8bc34a);
+            transition: width 0.3s;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links {
+                gap: 1rem;
+            }
+
+            .document-list {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            border: 4px solid var(--light);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-header h2 {
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .footer {
+            background-color: var(--light);
+            border-top: 1px solid var(--border);
+            padding: 2rem;
+            text-align: center;
+            color: #666;
+            margin-top: 2rem;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .detail-item {
+            background-color: var(--light);
+            padding: 1rem;
+            border-radius: 4px;
+        }
+
+        .detail-item strong {
+            color: var(--primary);
+        }
+
+        .extracted-data {
+            background-color: var(--light);
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+
+        .extracted-data p {
+            margin-bottom: 0.5rem;
+        }
+
+        .extracted-data strong {
+            color: var(--primary);
+        }
+
+        .search-form {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .search-form input,
+        .search-form select {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .search-form button {
+            align-self: flex-end;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <h1>📄 AI Document Processor</h1>
+            <div class="nav-links">
+                <a href="#" onclick="showPage('upload')">Upload</a>
+                <a href="#" onclick="showPage('documents')">Documents</a>
+                <a href="#" onclick="showPage('search')">Search</a>
+                <button onclick="logout()" title="Logout">👤 Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Upload Page -->
+        <div id="upload" class="page active">
+            <h2>Upload Document</h2>
+            <div class="card">
+                <form id="uploadForm">
+                    <div class="form-group">
+                        <label for="docType">Document Type</label>
+                        <select id="docType" required>
+                            <option value="">-- Select a type --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Upload File</label>
+                        <div class="upload-area" id="uploadArea">
+                            <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                            <h3>Drag and drop or click to select</h3>
+                            <p>Supported formats: PDF, JPG, PNG, TIFF, DOCX, XLSX, TXT</p>
+                            <input type="file" id="fileInput" hidden accept=".pdf,.jpg,.png,.tiff,.docx,.xlsx,.txt" />
+                        </div>
+                        <div id="fileName" style="margin-top: 1rem; display: none;">
+                            <strong>Selected file:</strong> <span id="fileNameText"></span>
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-primary">Upload</button>
+                        <button type="reset" class="btn btn-secondary" onclick="resetUploadForm()">Clear</button>
+                    </div>
+                </form>
+
+                <div id="uploadMessage" style="margin-top: 1rem;"></div>
+            </div>
+
+            <!-- Available Types -->
+            <div class="card">
+                <h3>Available Document Types</h3>
+                <div id="docTypesList"></div>
+            </div>
+        </div>
+
+        <!-- Documents Page -->
+        <div id="documents" class="page">
+            <h2>Documents</h2>
+            <div class="card">
+                <div class="search-form">
+                    <input type="text" id="searchInput" placeholder="Search documents..." onkeyup="searchDocuments()">
+                    <select id="statusFilter" onchange="filterDocuments()">
+                        <option value="">All Statuses</option>
+                        <option value="completed">Completed</option>
+                        <option value="processing">Processing</option>
+                        <option value="needs-review">Needs Review</option>
+                    </select>
+                    <select id="reviewFilter" onchange="filterDocuments()">
+                        <option value="">All Review Statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                </div>
+
+                <div id="documentsList"></div>
+            </div>
+        </div>
+
+        <!-- Search Page -->
+        <div id="search" class="page">
+            <h2>Search Documents</h2>
+            <div class="card">
+                <div class="form-group">
+                    <input type="text" id="advancedSearch" placeholder="Search by file name, content, or extracted data..." onkeyup="advancedSearch()">
+                </div>
+                <div id="searchResults"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Document Detail Modal -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="detailTitle">Document Details</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="detailContent"></div>
+            <div id="detailActions" style="margin-top: 1.5rem; display: flex; gap: 1rem;"></div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2024 AI Document Processor. All rights reserved.</p>
+        <p>Version 1.0.0 | Status: <span id="serverStatus">Checking...</span></p>
+    </footer>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let allDocuments = [];
+        let documentTypes = [];
+        let currentDocument = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDocumentTypes();
+            loadDocuments();
+            checkServerStatus();
+            setupUploadArea();
+            setupUploadForm();
+            setInterval(checkServerStatus, 10000);
+        });
+
+        // Page Navigation
+        function showPage(pageName) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageName).classList.add('active');
+            
+            if (pageName === 'documents') {
+                loadDocuments();
+            }
+        }
+
+        // Load Document Types
+        async function loadDocumentTypes() {
+            try {
+                const response = await fetch(`${API_URL}/config/document-types`);
+                documentTypes = await response.json();
+                
+                const select = document.getElementById('docType');
+                select.innerHTML = '<option value="">-- Select a type --</option>';
+                documentTypes.forEach(type => {
+                    const option = document.createElement('option');
+                    option.value = type.id;
+                    option.textContent = type.name;
+                    select.appendChild(option);
+                });
+
+                displayDocumentTypes();
+            } catch (error) {
+                console.error('Failed to load document types:', error);
+            }
+        }
+
+        // Display Document Types Info
+        function displayDocumentTypes() {
+            const container = document.getElementById('docTypesList');
+            container.innerHTML = documentTypes.map(type => `
+                <div style="margin-bottom: 1rem; padding: 1rem; background: #f9f9f9; border-radius: 4px;">
+                    <strong>${type.name}</strong> <span class="badge badge-info">${type.category}</span>
+                    <p style="margin: 0.5rem 0 0; font-size: 0.9rem; color: #666;">${type.description}</p>
+                </div>
+            `).join('');
+        }
+
+        // Setup Upload Area
+        function setupUploadArea() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+
+            uploadArea.addEventListener('click', () => fileInput.click());
+
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('drag-over');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('drag-over');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('drag-over');
+                handleFiles(e.dataTransfer.files);
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                handleFiles(e.target.files);
+            });
+        }
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                document.getElementById('fileNameText').textContent = file.name;
+                document.getElementById('fileName').style.display = 'block';
+            }
+        }
+
+        // Setup Upload Form
+        function setupUploadForm() {
+            document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const docTypeId = document.getElementById('docType').value;
+                const fileInput = document.getElementById('fileInput');
+                
+                if (!docTypeId) {
+                    showMessage('uploadMessage', 'Please select a document type', 'error');
+                    return;
+                }
+
+                if (!fileInput.files[0]) {
+                    showMessage('uploadMessage', 'Please select a file', 'error');
+                    return;
+                }
+
+                try {
+                    showMessage('uploadMessage', 'Uploading...', 'info');
+                    
+                    const uploadData = {
+                        documentTypeId: docTypeId,
+                        fileName: fileInput.files[0].name
+                    };
+
+                    const response = await fetch(`${API_URL}/documents/upload`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(uploadData)
+                    });
+
+                    if (!response.ok) throw new Error('Upload failed');
+                    
+                    const document = await response.json();
+                    showMessage('uploadMessage', 'Document uploaded successfully! Redirecting...', 'success');
+                    
+                    resetUploadForm();
+                    setTimeout(() => {
+                        showDocumentDetail(document.id);
+                    }, 1500);
+                } catch (error) {
+                    showMessage('uploadMessage', 'Upload failed: ' + error.message, 'error');
+                }
+            });
+        }
+
+        function resetUploadForm() {
+            document.getElementById('uploadForm').reset();
+            document.getElementById('fileName').style.display = 'none';
+            document.getElementById('uploadMessage').innerHTML = '';
+        }
+
+        // Load Documents
+        async function loadDocuments() {
+            try {
+                const response = await fetch(`${API_URL}/documents?page=1&pageSize=100`);
+                const data = await response.json();
+                allDocuments = data.items || [];
+                displayDocuments(allDocuments);
+            } catch (error) {
+                console.error('Failed to load documents:', error);
+                document.getElementById('documentsList').innerHTML = '<div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> Failed to load documents</div>';
+            }
+        }
+
+        // Display Documents
+        function displayDocuments(docs) {
+            const container = document.getElementById('documentsList');
+            
+            if (docs.length === 0) {
+                container.innerHTML = '<div class="alert alert-info"><i class="fas fa-info-circle"></i> No documents found</div>';
+                return;
+            }
+
+            container.innerHTML = docs.map(doc => `
+                <div class="document-card" onclick="showDocumentDetail('${doc.id}')">
+                    <h4>${doc.fileName}</h4>
+                    <p><strong>Type:</strong> ${doc.documentTypeId}</p>
+                    <p><strong>Uploaded:</strong> ${new Date(doc.uploadedAt).toLocaleDateString()}</p>
+                    <div>
+                        <span class="badge badge-info">${doc.status}</span>
+                        <span class="badge ${doc.reviewStatus === 'approved' ? 'badge-success' : doc.reviewStatus === 'rejected' ? 'badge-error' : 'badge-warning'}">
+                            ${doc.reviewStatus}
+                        </span>
+                    </div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" style="width: ${doc.confidence * 100}%"></div>
+                    </div>
+                    <p style="margin-top: 0.5rem; font-size: 0.85rem; color: #999;">
+                        Confidence: ${(doc.confidence * 100).toFixed(1)}%
+                    </p>
+                </div>
+            `).join('');
+        }
+
+        // Filter Documents
+        function filterDocuments() {
+            const status = document.getElementById('statusFilter').value;
+            const review = document.getElementById('reviewFilter').value;
+            const search = document.getElementById('searchInput').value.toLowerCase();
+
+            const filtered = allDocuments.filter(doc => {
+                const statusMatch = !status || doc.status === status;
+                const reviewMatch = !review || doc.reviewStatus === review;
+                const searchMatch = !search || doc.fileName.toLowerCase().includes(search);
+                return statusMatch && reviewMatch && searchMatch;
+            });
+
+            displayDocuments(filtered);
+        }
+
+        function searchDocuments() {
+            filterDocuments();
+        }
+
+        // Advanced Search
+        async function advancedSearch() {
+            const query = document.getElementById('advancedSearch').value;
+            const container = document.getElementById('searchResults');
+
+            if (!query || query.length < 2) {
+                container.innerHTML = '';
+                return;
+            }
+
+            try {
+                container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+                
+                const filtered = allDocuments.filter(doc =>
+                    doc.fileName.toLowerCase().includes(query.toLowerCase()) ||
+                    doc.ocrText.toLowerCase().includes(query.toLowerCase()) ||
+                    JSON.stringify(doc.extractedData).toLowerCase().includes(query.toLowerCase())
+                );
+
+                if (filtered.length === 0) {
+                    container.innerHTML = '<div class="alert alert-info"><i class="fas fa-info-circle"></i> No results found</div>';
+                    return;
+                }
+
+                container.innerHTML = `
+                    <div class="alert alert-success"><i class="fas fa-check-circle"></i> Found ${filtered.length} document(s)</div>
+                ` + filtered.map(doc => `
+                    <div class="document-card" onclick="showDocumentDetail('${doc.id}')">
+                        <h4>${doc.fileName}</h4>
+                        <p><strong>Matches:</strong> ${doc.fileName.toLowerCase().includes(query.toLowerCase()) ? 'File name' : ''} 
+                           ${doc.ocrText.toLowerCase().includes(query.toLowerCase()) ? 'OCR text' : ''}</p>
+                        <span class="badge ${doc.reviewStatus === 'approved' ? 'badge-success' : doc.reviewStatus === 'rejected' ? 'badge-error' : 'badge-warning'}">
+                            ${doc.reviewStatus}
+                        </span>
+                    </div>
+                `).join('');
+            } catch (error) {
+                container.innerHTML = '<div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> Search failed</div>';
+            }
+        }
+
+        // Show Document Detail
+        function showDocumentDetail(docId) {
+            const doc = allDocuments.find(d => d.id === docId);
+            if (!doc) return;
+
+            currentDocument = doc;
+            const docType = documentTypes.find(t => t.id === doc.documentTypeId);
+            
+            document.getElementById('detailTitle').textContent = doc.fileName;
+
+            let detailHTML = `
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <strong>Status:</strong>
+                        <span class="badge badge-info" style="margin-left: 0.5rem;">${doc.status}</span>
+                    </div>
+                    <div class="detail-item">
+                        <strong>Review Status:</strong>
+                        <span class="badge ${doc.reviewStatus === 'approved' ? 'badge-success' : doc.reviewStatus === 'rejected' ? 'badge-error' : 'badge-warning'}" style="margin-left: 0.5rem;">
+                            ${doc.reviewStatus}
+                        </span>
+                    </div>
+                    <div class="detail-item">
+                        <strong>Uploaded:</strong><br>${new Date(doc.uploadedAt).toLocaleString()}
+                    </div>
+                    <div class="detail-item">
+                        <strong>File Size:</strong><br>${(doc.fileSize / 1024).toFixed(2)} KB
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <strong>Confidence Score:</strong> ${(doc.confidence * 100).toFixed(1)}%
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" style="width: ${doc.confidence * 100}%"></div>
+                    </div>
+                </div>
+            `;
+
+            if (Object.keys(doc.extractedData).length > 0) {
+                detailHTML += `
+                    <h3>Extracted Data</h3>
+                    <div class="extracted-data">
+                        ${Object.entries(doc.extractedData).map(([key, value]) => `
+                            <p><strong>${key}:</strong> ${value}</p>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            if (doc.ocrText) {
+                detailHTML += `
+                    <h3>OCR Text Preview</h3>
+                    <div style="background-color: #f5f5f5; padding: 1rem; border-radius: 4px; max-height: 300px; overflow-y: auto;">
+                        <p style="white-space: pre-wrap; margin: 0;">${doc.ocrText.substring(0, 500)}${doc.ocrText.length > 500 ? '...' : ''}</p>
+                    </div>
+                `;
+            }
+
+            if (doc.comments) {
+                detailHTML += `
+                    <h3>Comments</h3>
+                    <div class="extracted-data">
+                        <p>${doc.comments}</p>
+                        ${doc.reviewedBy ? `<p style="font-size: 0.9rem; color: #999;">Reviewed by ${doc.reviewedBy} on ${new Date(doc.reviewedAt).toLocaleString()}</p>` : ''}
+                    </div>
+                `;
+            }
+
+            document.getElementById('detailContent').innerHTML = detailHTML;
+
+            // Setup action buttons
+            let actionsHTML = '';
+            if (doc.reviewStatus === 'pending') {
+                actionsHTML = `
+                    <button class="btn btn-success" onclick="approveDocument('${doc.id}')">Approve</button>
+                    <button class="btn btn-error" onclick="showRejectForm('${doc.id}')">Reject</button>
+                `;
+            }
+            actionsHTML += `<button class="btn btn-secondary" onclick="closeModal()">Close</button>`;
+            
+            document.getElementById('detailActions').innerHTML = actionsHTML;
+            document.getElementById('detailModal').classList.add('active');
+        }
+
+        // Approve Document
+        async function approveDocument(docId) {
+            try {
+                const response = await fetch(`${API_URL}/documents/${docId}/approve`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ comments: '' })
+                });
+
+                if (!response.ok) throw new Error('Approval failed');
+                
+                await loadDocuments();
+                alert('Document approved successfully!');
+                closeModal();
+            } catch (error) {
+                alert('Failed to approve document: ' + error.message);
+            }
+        }
+
+        // Show Reject Form
+        function showRejectForm(docId) {
+            const comments = prompt('Enter rejection reason:');
+            if (comments !== null) {
+                rejectDocument(docId, comments);
+            }
+        }
+
+        // Reject Document
+        async function rejectDocument(docId, comments) {
+            try {
+                const response = await fetch(`${API_URL}/documents/${docId}/reject`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ comments })
+                });
+
+                if (!response.ok) throw new Error('Rejection failed');
+                
+                await loadDocuments();
+                alert('Document rejected');
+                closeModal();
+            } catch (error) {
+                alert('Failed to reject document: ' + error.message);
+            }
+        }
+
+        // Close Modal
+        function closeModal() {
+            document.getElementById('detailModal').classList.remove('active');
+        }
+
+        // Show Message
+        function showMessage(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="alert alert-${type}"><i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}-circle"></i> ${message}</div>`;
+        }
+
+        // Check Server Status
+        async function checkServerStatus() {
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                if (response.ok) {
+                    document.getElementById('serverStatus').innerHTML = '<span style="color: green;">✓ Online</span>';
+                } else {
+                    document.getElementById('serverStatus').innerHTML = '<span style="color: red;">✗ Offline</span>';
+                }
+            } catch (error) {
+                document.getElementById('serverStatus').innerHTML = '<span style="color: red;">✗ Offline</span>';
+            }
+        }
+
+        // Logout
+        function logout() {
+            alert('Logout functionality can be implemented here');
+        }
+    </script>
+</body>
+</html>

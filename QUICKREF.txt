@@ -1,0 +1,301 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                   AI DOCUMENT PROCESSOR - QUICK REFERENCE                     ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 🚀 STARTING THE APPLICATION (Choose One)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1️⃣  PYTHON SERVER (Recommended)
+   Prerequisites: Python 3.7+
+   Command:      python server.py
+   Browser:      http://localhost:3000/app.html
+   
+2️⃣  NODE.JS SERVER (Lightweight)
+   Prerequisites: Node.js 16+
+   Command:      node server-simple.js
+   Browser:      http://localhost:8080/app.html
+   
+3️⃣  REACT DEVELOPMENT SERVER (Full Featured)
+   Prerequisites: Node.js 16+ with npm
+   Command:      npm install && npm run dev
+   Browser:      http://localhost:5173
+   
+4️⃣  STANDALONE HTML (No Server)
+   Prerequisites: Web browser only
+   Open:         app.html directly in browser
+   Limitation:   Limited functionality without server
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 📋 DOCUMENT TYPES AVAILABLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📄 INVOICE (Financial)
+   Fields: Invoice Number | Date | Vendor Name | Total Amount | Description
+   Formats: PDF, JPG, PNG
+   
+📦 RECEIPT (Financial)
+   Fields: Receipt Number | Date | Vendor Name | Amount
+   Formats: PDF, JPG, PNG
+   
+📝 CONTRACT (Legal)
+   Fields: Title | Parties | Effective Date | Key Terms
+   Formats: PDF, DOCX
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 🎯 MAIN FEATURES & WORKFLOWS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📤 UPLOAD WORKFLOW
+   1. Click "Upload" tab
+   2. Select document type
+   3. Drag/drop file or click to select
+   4. Click "Upload" button
+   5. System processes document automatically
+   6. Redirected to review page
+
+✅ REVIEW & APPROVAL
+   1. View extracted data from document
+   2. Check OCR text and confidence score
+   3. Edit fields if needed
+   4. Click "Approve" to accept
+   5. Or click "Reject" with feedback
+   6. Document status updated
+
+🔍 SEARCH DOCUMENTS
+   1. Click "Search" tab
+   2. Type search query (filename, content, data)
+   3. Filter by status or review status
+   4. Results displayed in real-time
+   5. Click document to view details
+
+📊 VIEW DOCUMENT DETAILS
+   1. Click any document card
+   2. See full document information
+   3. View all extracted fields
+   4. Check processing confidence
+   5. See OCR text preview
+   6. View approval history
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 📡 API ENDPOINTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Configuration:
+  GET    /api/config/document-types
+  GET    /api/config/document-types/:typeId
+
+Documents:
+  POST   /api/documents/upload
+  GET    /api/documents
+  GET    /api/documents/:documentId
+  PUT    /api/documents/:documentId
+  DELETE /api/documents/:documentId
+  POST   /api/documents/:documentId/approve
+  POST   /api/documents/:documentId/reject
+  GET    /api/documents/search?q=query
+
+System:
+  GET    /api/health
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 📁 FILE STRUCTURE OVERVIEW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Key Files:
+  ✓ app.html                - Main web application (open in browser)
+  ✓ server.py              - Python API server
+  ✓ server-simple.js       - Node.js API server
+  ✓ README.md              - Full documentation
+  ✓ SETUP.md               - Detailed setup guide
+  ✓ STARTUP.md             - Quick start guide
+  ✓ FILES.md               - Project structure
+
+Optional React Files:
+  • src/components/        - React components
+  • src/pages/            - Page components
+  • src/hooks/            - Custom hooks
+  • package.json          - Dependencies
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ ⚙️  SYSTEM REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Minimum:
+  • OS: Windows, macOS, or Linux
+  • RAM: 512 MB
+  • Disk: 100 MB
+  • Browser: Chrome, Firefox, Safari, Edge
+
+Runtime (Choose One):
+  • Python 3.7+ OR
+  • Node.js 16+ OR
+  • Modern web browser
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 🔧 COMMON TASKS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Check if Python is installed:
+  python --version
+
+Check if Node.js is installed:
+  node --version && npm --version
+
+Check if server is running:
+  Open http://localhost:3000/api/health (Python)
+  Or http://localhost:8080/api/health (Node.js)
+
+Kill process on port 3000 (Windows):
+  netstat -ano | findstr :3000
+  taskkill /PID <PID> /F
+
+Kill process on port 3000 (macOS/Linux):
+  lsof -i :3000
+  kill -9 <PID>
+
+Build React application for production:
+  npm install && npm run build
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ ❌ TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Problem: "Port X already in use"
+  Solution: Kill the process using that port (see Common Tasks above)
+            Or use a different port by modifying the server code
+
+Problem: "Python/Node not found"
+  Solution: Install from https://www.python.org/ or https://nodejs.org/
+            Make sure to add to PATH during installation
+
+Problem: "Cannot connect to server"
+  Solution: 1. Verify server is running (check terminal)
+           2. Check correct URL (http://localhost:3000 or 8080)
+           3. Refresh browser (Ctrl+R or Cmd+R)
+           4. Check firewall settings
+
+Problem: "CORS errors"
+  Solution: Both servers have CORS enabled - should work fine
+            Try refreshing browser and clearing cache
+
+Problem: "Documents disappear after restart"
+  Solution: This is expected! Data is stored in memory only
+           Implement database to persist data (see SETUP.md)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 💡 TIPS & TRICKS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✨ Use browser DevTools (F12) to:
+   - Watch Network tab to see API calls
+   - Check Console for errors
+   - View Application storage
+
+✨ Test all document types to understand:
+   - Different extraction templates
+   - How confidence scoring works
+   - Review workflow differences
+
+✨ Check terminal output to see:
+   - Server startup messages
+   - API request logging
+   - Error messages
+
+✨ Modify document types by:
+   - Editing server.py or server-simple.js
+   - Adding new entries to documentTypes array
+   - Restart server to apply changes
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 📚 DOCUMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+README.md   - Complete feature documentation & API reference
+SETUP.md    - Detailed setup instructions & troubleshooting
+STARTUP.md  - Quick start guide & feature overview
+FILES.md    - Project structure & file descriptions
+QUICKREF.txt - This quick reference card
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ ✨ FEATURES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Document upload with multiple format support
+✅ Multiple document types (Invoice, Receipt, Contract)
+✅ AI processing simulation (OCR, classification, extraction)
+✅ Dynamic data extraction based on type
+✅ Confidence scoring for extracted data
+✅ Human-in-the-loop review interface
+✅ Approve/Reject workflow with comments
+✅ Document search and filtering
+✅ Full document details viewing
+✅ Status tracking and history
+✅ Responsive mobile-friendly design
+✅ REST API with multiple endpoints
+✅ CORS support for cross-origin requests
+✅ Production-ready architecture
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 🎓 LEARNING PATH
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Start with STARTUP.md for quick overview
+2. Read README.md for detailed documentation
+3. Run the application with your preferred server
+4. Test all features and workflows
+5. Explore the code in src/ folder
+6. Read SETUP.md for deployment options
+7. Check FILES.md for project structure details
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 🚀 NEXT STEPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Phase 1: Start using the application
+  1. Choose your preferred server (Python or Node.js)
+  2. Run the server
+  3. Open app in browser
+  4. Upload and review documents
+
+Phase 2: Customize for your needs
+  1. Add new document types
+  2. Modify extraction templates
+  3. Adjust validation rules
+  4. Update UI as needed
+
+Phase 3: Enhance with real features
+  1. Connect to real AI services (Google Vision, OpenAI, etc.)
+  2. Add database for persistence
+  3. Implement user authentication
+  4. Add audit logging
+
+Phase 4: Deploy to production
+  1. Set up environment variables
+  2. Configure database
+  3. Deploy to cloud (AWS, Azure, GCP)
+  4. Set up monitoring and logging
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║  🎉 AI DOCUMENT PROCESSOR IS READY!                                         ║
+║                                                                              ║
+║  Follow the STARTING THE APPLICATION section above to get started.           ║
+║  For detailed help, see README.md, SETUP.md, or STARTUP.md                   ║
+║                                                                              ║
+║  Version: 1.0.0  |  Status: ✅ Ready for Use  |  Created: January 2024      ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝

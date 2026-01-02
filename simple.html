@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Document Processor</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        h1 { color: #1976d2; margin-bottom: 30px; }
+        .section { margin-bottom: 30px; padding: 20px; background: #f9f9f9; border-radius: 4px; border-left: 4px solid #1976d2; }
+        .section h2 { color: #1976d2; margin-bottom: 15px; font-size: 1.3em; }
+        .upload-area { border: 2px dashed #1976d2; padding: 40px; text-align: center; border-radius: 4px; cursor: pointer; transition: all 0.3s; }
+        .upload-area:hover { background: #f0f7ff; border-color: #1565c0; }
+        input[type="file"], input[type="text"], select, button { 
+            display: block; 
+            width: 100%; 
+            padding: 12px; 
+            margin: 10px 0; 
+            border: 1px solid #ddd; 
+            border-radius: 4px; 
+            font-size: 14px;
+        }
+        button { 
+            background: #1976d2; 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+            font-weight: bold;
+            width: auto;
+            padding: 12px 30px;
+        }
+        button:hover { background: #1565c0; }
+        .document-item { padding: 15px; background: white; margin: 10px 0; border-left: 4px solid #4caf50; border-radius: 2px; }
+        .document-item strong { color: #1976d2; }
+        .status { display: inline-block; padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: bold; margin-left: 10px; }
+        .status.pending { background: #fff3cd; color: #856404; }
+        .status.completed { background: #d4edda; color: #155724; }
+        .document-list { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AI Document Processor</h1>
+        
+        <div class="section">
+            <h2>Upload Document</h2>
+            <div id="uploadForm">
+                <input type="text" id="fileName" placeholder="Document name (optional)">
+                <select id="docType">
+                    <option value="invoice">Invoice</option>
+                    <option value="receipt">Receipt</option>
+                    <option value="contract">Contract</option>
+                </select>
+                <input type="file" id="fileInput" multiple>
+                <button onclick="uploadDocument()">Upload</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Your Documents</h2>
+            <div id="documentList" class="document-list">
+                <p style="color: #999;">No documents yet. Upload one to get started.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+
+        async function uploadDocument() {
+            const fileName = document.getElementById('fileName').value || 'document';
+            const docType = document.getElementById('docType').value;
+            const files = document.getElementById('fileInput').files;
+
+            if (files.length === 0) {
+                alert('Please select a file');
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('fileName', fileName);
+                formData.append('documentType', docType);
+                
+                const response = await fetch(`${API_BASE}/documents/upload`, {
+                    method: 'POST',
+                    body: JSON.stringify({ fileName, documentType: docType }),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    alert('Document uploaded successfully!');
+                    document.getElementById('fileInput').value = '';
+                    document.getElementById('fileName').value = '';
+                    loadDocuments();
+                } else {
+                    alert('Upload failed');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error uploading document: ' + error.message);
+            }
+        }
+
+        async function loadDocuments() {
+            try {
+                const response = await fetch(`${API_BASE}/documents`);
+                const data = await response.json();
+                const list = document.getElementById('documentList');
+                
+                if (!data.items || data.items.length === 0) {
+                    list.innerHTML = '<p style="color: #999;">No documents yet. Upload one to get started.</p>';
+                    return;
+                }
+                
+                list.innerHTML = data.items.map(doc => `
+                    <div class="document-item">
+                        <strong>${doc.fileName}</strong>
+                        <span class="status ${doc.status === 'completed' ? 'completed' : 'pending'}">
+                            ${doc.status.toUpperCase()}
+                        </span>
+                        <p style="margin-top: 10px; color: #666; font-size: 13px;">
+                            Type: ${doc.documentType} | Uploaded: ${new Date(doc.uploadedAt).toLocaleDateString()}
+                        </p>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading documents:', error);
+            }
+        }
+
+        // Load documents on page load
+        loadDocuments();
+        
+        // Refresh documents every 5 seconds
+        setInterval(loadDocuments, 5000);
+    </script>
+</body>
+</html>
