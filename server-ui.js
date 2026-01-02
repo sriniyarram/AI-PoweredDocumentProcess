@@ -68,9 +68,10 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:
 .badge.pending { background: #fff3cd; color: #856404; }
 .badge.approved { background: #d4edda; color: #155724; }
 .confidence { color: #27ae60; font-weight: 600; }
-.message { padding: 15px; margin: 20px 0; border-radius: 6px; font-size: 14px; }
-.success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; border-left: 4px solid #27ae60; }
-.error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; border-left: 4px solid #e74c3c; }
+.message { padding: 15px; margin: 20px 0; border-radius: 6px; font-size: 14px; animation: slideIn 0.3s ease-in; }
+@keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+.success { background: #d4edda; border: 2px solid #c3e6cb; color: #155724; border-left: 4px solid #27ae60; }
+.error { background: #f8d7da; border: 2px solid #f5c6cb; color: #721c24; border-left: 4px solid #e74c3c; font-weight: 500; }
 .two-column { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
 .no-documents { text-align: center; padding: 40px; color: #95a5a6; }
 @media (max-width: 768px) {
@@ -197,7 +198,13 @@ function onFileSelected() {
 
 function upload() {
   const file = document.getElementById('docFile').files[0];
-  if (!file) { alert('Select a file first'); return; }
+  
+  // Validate file selection
+  if (!file) {
+    document.getElementById('uploadMsg').innerHTML = 
+      '<div class="message error">⚠️ <strong>Error:</strong> Please select a document file before uploading. Click on the upload area above to choose a file.</div>';
+    return;
+  }
   
   const docType = document.getElementById('docType').value;
   
@@ -209,13 +216,13 @@ function upload() {
   .then(r => r.json())
   .then(d => {
     document.getElementById('uploadMsg').innerHTML = 
-      '<div class="message success">✓ Uploaded! Confidence: <span class="confidence">' + (d.confidence * 100).toFixed(0) + '%</span></div>';
+      '<div class="message success">✓ <strong>Success!</strong> Document uploaded successfully! Confidence: <span class="confidence">' + (d.confidence * 100).toFixed(0) + '%</span></div>';
     document.getElementById('docFile').value = '';
     document.getElementById('fileName').textContent = '';
     setTimeout(() => loadDocs(), 500);
   })
   .catch(e => {
-    document.getElementById('uploadMsg').innerHTML = '<div class="message error">✗ Error: ' + e + '</div>';
+    document.getElementById('uploadMsg').innerHTML = '<div class="message error">✗ <strong>Error:</strong> Failed to upload document: ' + e + '</div>';
   });
 }
 
