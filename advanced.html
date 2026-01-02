@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Document Processor Pro</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        
+        .navbar { background: #2c3e50; color: white; padding: 15px 20px; border-radius: 8px 8px 0 0; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+        .navbar h1 { font-size: 20px; }
+        .user-info { display: flex; gap: 15px; align-items: center; }
+        .user-info button { background: #e74c3c; border: none; color: white; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
+        .user-info button:hover { background: #c0392b; }
+        
+        .container { max-width: 1400px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); overflow: hidden; }
+        
+        .tabs { display: flex; background: #34495e; border-bottom: 2px solid #2c3e50; }
+        .tab { padding: 15px 25px; color: white; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s; }
+        .tab:hover { background: #2c3e50; }
+        .tab.active { border-bottom-color: #3498db; background: #2c3e50; }
+        
+        .tab-content { padding: 30px; display: none; }
+        .tab-content.active { display: block; }
+        
+        .section { margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #3498db; }
+        .section h2 { color: #2c3e50; margin-bottom: 15px; font-size: 18px; }
+        
+        .form-group { margin: 15px 0; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #2c3e50; }
+        .form-group input, .form-group select, .form-group textarea { 
+            width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; 
+        }
+        .form-group textarea { resize: vertical; min-height: 100px; }
+        
+        .button-group { display: flex; gap: 10px; margin-top: 15px; }
+        button { background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.3s; }
+        button:hover { background: #2980b9; }
+        button.danger { background: #e74c3c; }
+        button.danger:hover { background: #c0392b; }
+        button.success { background: #27ae60; }
+        button.success:hover { background: #229954; }
+        
+        .document-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+        .document-card { background: #f8f9fa; padding: 15px; border-radius: 6px; border-left: 4px solid #3498db; transition: transform 0.3s, box-shadow 0.3s; }
+        .document-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .document-card h3 { color: #2c3e50; margin-bottom: 10px; }
+        .document-card p { font-size: 13px; color: #7f8c8d; margin: 5px 0; }
+        
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; margin-right: 5px; }
+        .badge.pending { background: #f39c12; color: white; }
+        .badge.approved { background: #27ae60; color: white; }
+        .badge.rejected { background: #e74c3c; color: white; }
+        .badge.completed { background: #3498db; color: white; }
+        
+        .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        .search-box input { flex: 1; }
+        
+        .login-form { max-width: 400px; margin: 50px auto; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .login-form h2 { margin-bottom: 20px; text-align: center; color: #2c3e50; }
+        
+        .audit-log { max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; }
+        .audit-entry { padding: 10px; border-bottom: 1px solid #eee; font-size: 13px; }
+        .audit-entry:last-child { border-bottom: none; }
+        
+        .hidden { display: none; }
+        .success-msg { background: #d4edda; color: #155724; padding: 12px; border-radius: 4px; margin-bottom: 15px; }
+        .error-msg { background: #f8d7da; color: #721c24; padding: 12px; border-radius: 4px; margin-bottom: 15px; }
+        
+        .field-editor { background: white; padding: 15px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 15px; }
+        .field-editor label { display: inline-block; width: 150px; font-weight: bold; }
+        
+        .confidence-bar { background: #ecf0f1; height: 8px; border-radius: 4px; margin: 10px 0; overflow: hidden; }
+        .confidence-fill { height: 100%; background: linear-gradient(90deg, #e74c3c, #f39c12, #27ae60); transition: width 0.3s; }
+        
+        .admin-panel { background: #fff3cd; padding: 15px; border-radius: 4px; border-left: 4px solid #ffc107; }
+        .admin-panel h3 { color: #856404; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="navbar">
+            <h1>AI Document Processor Pro</h1>
+            <div class="user-info">
+                <span id="userDisplay">Not logged in</span>
+                <button onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <div id="loginScreen" class="hidden">
+            <div class="login-form">
+                <h2>Login</h2>
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="username" placeholder="john_reviewer" />
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" placeholder="pass123" />
+                </div>
+                <button onclick="login()" style="width: 100%;">Login</button>
+                <p style="margin-top: 15px; font-size: 12px; color: #7f8c8d;">
+                    Demo users:<br>
+                    john_reviewer / pass123 (Reviewer)<br>
+                    admin_user / pass123 (Admin)<br>
+                    processor / pass123 (Processor)
+                </p>
+            </div>
+        </div>
+
+        <div id="mainApp" class="hidden">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('upload')">Upload</div>
+                <div class="tab" onclick="switchTab('documents')">My Documents</div>
+                <div class="tab" onclick="switchTab('review')">Review</div>
+                <div class="tab" onclick="switchTab('search')">Search</div>
+                <div class="tab" onclick="switchTab('audit')">Audit Trail</div>
+                <div class="tab" id="adminTab" class="hidden" onclick="switchTab('admin')">Admin</div>
+            </div>
+
+            <!-- UPLOAD TAB -->
+            <div id="upload" class="tab-content active">
+                <div class="section">
+                    <h2>Upload New Document</h2>
+                    <div class="form-group">
+                        <label>Document Name</label>
+                        <input type="text" id="docName" placeholder="Invoice_2024_001" />
+                    </div>
+                    <div class="form-group">
+                        <label>Document Type</label>
+                        <select id="docType">
+                            <option value="invoice">Invoice</option>
+                            <option value="receipt">Receipt</option>
+                            <option value="contract">Contract</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>File (Simulated)</label>
+                        <input type="file" id="docFile" />
+                    </div>
+                    <button onclick="uploadDocument()" class="success">Upload & Process</button>
+                </div>
+                <div id="uploadMsg"></div>
+            </div>
+
+            <!-- DOCUMENTS TAB -->
+            <div id="documents" class="tab-content">
+                <div class="section">
+                    <h2>Your Documents</h2>
+                    <div class="search-box">
+                        <input type="text" id="searchBox" placeholder="Search documents..." onkeyup="loadDocuments()" />
+                        <select id="statusFilter" onchange="loadDocuments()">
+                            <option value="">All Status</option>
+                            <option value="processing">Processing</option>
+                            <option value="completed">Completed</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                    <div id="documentsList" class="document-list"></div>
+                </div>
+            </div>
+
+            <!-- REVIEW TAB -->
+            <div id="review" class="tab-content">
+                <div class="section">
+                    <h2>Document Review & Correction</h2>
+                    <select id="docToReview" onchange="loadDocumentForReview()">
+                        <option value="">Select a document to review...</option>
+                    </select>
+                    <div id="reviewPanel" style="margin-top: 20px;"></div>
+                </div>
+            </div>
+
+            <!-- SEARCH TAB -->
+            <div id="search" class="tab-content">
+                <div class="section">
+                    <h2>Advanced Search</h2>
+                    <div class="form-group">
+                        <label>Keyword</label>
+                        <input type="text" id="searchKeyword" placeholder="Search..." />
+                    </div>
+                    <div class="form-group">
+                        <label>Document Type</label>
+                        <select id="searchDocType">
+                            <option value="">All Types</option>
+                            <option value="invoice">Invoice</option>
+                            <option value="receipt">Receipt</option>
+                            <option value="contract">Contract</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="searchStatus">
+                            <option value="">All Status</option>
+                            <option value="pending">Pending Review</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                    <button onclick="advancedSearch()" class="success">Search</button>
+                    <div id="searchResults" style="margin-top: 20px;"></div>
+                </div>
+            </div>
+
+            <!-- AUDIT TAB -->
+            <div id="audit" class="tab-content">
+                <div class="section">
+                    <h2>Audit Trail & Traceability</h2>
+                    <div class="form-group">
+                        <label>Filter by Document</label>
+                        <select id="auditDocFilter" onchange="loadAuditLogs()">
+                            <option value="">All Documents</option>
+                        </select>
+                    </div>
+                    <div id="auditLogList" class="audit-log"></div>
+                </div>
+            </div>
+
+            <!-- ADMIN TAB -->
+            <div id="admin" class="tab-content">
+                <div class="admin-panel">
+                    <h3>Administrator Panel</h3>
+                    <p>Manage document types, users, and system configuration</p>
+                </div>
+                
+                <div class="section">
+                    <h2>Document Type Configuration</h2>
+                    <div class="form-group">
+                        <label>Type Name</label>
+                        <input type="text" id="newTypeName" placeholder="e.g., PO Document" />
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <input type="text" id="newTypeCategory" placeholder="e.g., Procurement" />
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="newTypeDesc" placeholder="Document description..."></textarea>
+                    </div>
+                    <button onclick="createDocumentType()" class="success">Create Document Type</button>
+                </div>
+
+                <div class="section">
+                    <h2>System Users</h2>
+                    <div id="usersList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = 'http://localhost:3000/api';
+        let currentUser = null;
+
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            fetch(`${API}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.user) {
+                    currentUser = data.user;
+                    localStorage.setItem('token', data.token);
+                    document.getElementById('userDisplay').textContent = `${data.user.username} (${data.user.role})`;
+                    document.getElementById('loginScreen').classList.add('hidden');
+                    document.getElementById('mainApp').classList.remove('hidden');
+                    if (data.user.role === 'admin') {
+                        document.getElementById('adminTab').classList.remove('hidden');
+                    }
+                    loadDocuments();
+                    loadAuditLogs();
+                    loadUsers();
+                } else {
+                    alert('Login failed: ' + (data.error || 'Unknown error'));
+                }
+            });
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('token');
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function uploadDocument() {
+            const fileName = document.getElementById('docName').value || 'Untitled';
+            const docType = document.getElementById('docType').value;
+
+            if (!fileName || !docType) {
+                alert('Please fill all fields');
+                return;
+            }
+
+            fetch(`${API}/documents/upload`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fileName, documentType: docType })
+            })
+            .then(r => r.json())
+            .then(doc => {
+                document.getElementById('uploadMsg').innerHTML = `
+                    <div class="success-msg">
+                        Document uploaded successfully! ID: ${doc.id}<br>
+                        Confidence: ${(doc.confidence * 100).toFixed(1)}%
+                    </div>
+                `;
+                document.getElementById('docName').value = '';
+                loadDocuments();
+            })
+            .catch(e => {
+                document.getElementById('uploadMsg').innerHTML = `<div class="error-msg">Upload failed: ${e.message}</div>`;
+            });
+        }
+
+        function loadDocuments() {
+            const search = document.getElementById('searchBox')?.value || '';
+            const status = document.getElementById('statusFilter')?.value || '';
+            
+            let url = `${API}/documents`;
+            if (search || status) {
+                url += '?' + new URLSearchParams({ search, status }).toString();
+            }
+
+            fetch(url)
+            .then(r => r.json())
+            .then(data => {
+                const list = document.getElementById('documentsList');
+                if (!data.items || data.items.length === 0) {
+                    list.innerHTML = '<p>No documents found</p>';
+                    return;
+                }
+
+                list.innerHTML = data.items.map(doc => `
+                    <div class="document-card">
+                        <h3>${doc.fileName}</h3>
+                        <p><strong>Type:</strong> ${doc.documentType}</p>
+                        <p><strong>Status:</strong> <span class="badge ${doc.reviewStatus}">${doc.reviewStatus}</span></p>
+                        <p><strong>Confidence:</strong> ${(doc.confidence * 100).toFixed(1)}%</p>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: ${doc.confidence * 100}%"></div>
+                        </div>
+                        <p><small>Uploaded: ${new Date(doc.uploadedAt).toLocaleDateString()}</small></p>
+                        <button onclick="viewDocument('${doc.id}')" style="width: 100%; margin-top: 10px;">View Details</button>
+                    </div>
+                `).join('');
+
+                // Populate review dropdown
+                const select = document.getElementById('docToReview');
+                select.innerHTML = '<option value="">Select a document...</option>' + 
+                    data.items.map(doc => `<option value="${doc.id}">${doc.fileName}</option>`).join('');
+            });
+        }
+
+        function viewDocument(docId) {
+            fetch(`${API}/documents/${docId}`)
+            .then(r => r.json())
+            .then(doc => {
+                alert(`Document: ${doc.fileName}\n\nExtracted Data:\n${JSON.stringify(doc.extractedData, null, 2)}\n\nConfidence: ${(doc.confidence * 100).toFixed(1)}%`);
+            });
+        }
+
+        function loadDocumentForReview() {
+            const docId = document.getElementById('docToReview').value;
+            if (!docId) return;
+
+            fetch(`${API}/documents/${docId}`)
+            .then(r => r.json())
+            .then(doc => {
+                let fieldsHtml = Object.entries(doc.extractedData).map(([key, value]) => `
+                    <div class="field-editor">
+                        <label>${key}:</label>
+                        <input type="text" value="${value}" data-field="${key}" />
+                    </div>
+                `).join('');
+
+                document.getElementById('reviewPanel').innerHTML = `
+                    <div class="section">
+                        <h3>${doc.fileName}</h3>
+                        <p>Confidence: ${(doc.confidence * 100).toFixed(1)}%</p>
+                        <p>OCR Preview: ${doc.ocrText}</p>
+                        ${fieldsHtml}
+                        <button onclick="saveCorrections('${docId}')" class="success">Save Corrections</button>
+                        <button onclick="approveDocument('${docId}')" class="success" style="background: #27ae60;">Approve</button>
+                        <button onclick="rejectDocument('${docId}')" class="danger">Reject</button>
+                    </div>
+                `;
+            });
+        }
+
+        function saveCorrections(docId) {
+            const corrections = {};
+            document.querySelectorAll('[data-field]').forEach(input => {
+                corrections[input.getAttribute('data-field')] = input.value;
+            });
+
+            fetch(`${API}/documents/${docId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(corrections)
+            })
+            .then(r => r.json())
+            .then(doc => {
+                alert('Corrections saved!');
+                loadDocuments();
+            });
+        }
+
+        function approveDocument(docId) {
+            fetch(`${API}/documents/${docId}/approve`, { method: 'POST' })
+            .then(r => r.json())
+            .then(doc => {
+                alert('Document approved!');
+                loadDocuments();
+                loadAuditLogs();
+            });
+        }
+
+        function rejectDocument(docId) {
+            const reason = prompt('Rejection reason:');
+            if (!reason) return;
+
+            fetch(`${API}/documents/${docId}/reject`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reason })
+            })
+            .then(r => r.json())
+            .then(doc => {
+                alert('Document rejected');
+                loadDocuments();
+                loadAuditLogs();
+            });
+        }
+
+        function advancedSearch() {
+            const keyword = document.getElementById('searchKeyword').value;
+            const docType = document.getElementById('searchDocType').value;
+            const status = document.getElementById('searchStatus').value;
+
+            let url = `${API}/documents?search=${keyword}`;
+            if (docType) url += `&documentType=${docType}`;
+            if (status) url += `&status=${status}`;
+
+            fetch(url)
+            .then(r => r.json())
+            .then(data => {
+                const results = document.getElementById('searchResults');
+                results.innerHTML = data.items.length > 0 ? 
+                    `<p>Found ${data.items.length} documents</p>` +
+                    data.items.map(doc => `<div class="document-card">${doc.fileName}</div>`).join('') :
+                    '<p>No results found</p>';
+            });
+        }
+
+        function loadAuditLogs() {
+            fetch(`${API}/audit-logs`)
+            .then(r => r.json())
+            .then(logs => {
+                const list = document.getElementById('auditLogList');
+                list.innerHTML = logs.map(log => `
+                    <div class="audit-entry">
+                        <strong>${log.action}</strong> - ${log.userId} - ${new Date(log.timestamp).toLocaleString()}<br>
+                        <small>${JSON.stringify(log.changes)}</small>
+                    </div>
+                `).join('') || '<p>No audit logs</p>';
+            });
+        }
+
+        function loadUsers() {
+            fetch(`${API}/auth/users`)
+            .then(r => r.json())
+            .then(users => {
+                const list = document.getElementById('usersList');
+                if (list) {
+                    list.innerHTML = users.map(u => `
+                        <div class="field-editor">
+                            ${u.username} (${u.role}) - ${u.email}
+                        </div>
+                    `).join('');
+                }
+            });
+        }
+
+        function createDocumentType() {
+            const name = document.getElementById('newTypeName').value;
+            const category = document.getElementById('newTypeCategory').value;
+            const desc = document.getElementById('newTypeDesc').value;
+
+            fetch(`${API}/config/document-types`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name, category, description: desc,
+                    extractionFields: [{ id: 'field1', label: 'Field 1', type: 'text' }]
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                alert('Document type created!');
+                document.getElementById('newTypeName').value = '';
+                document.getElementById('newTypeCategory').value = '';
+                document.getElementById('newTypeDesc').value = '';
+            });
+        }
+
+        // Check if logged in
+        window.addEventListener('load', () => {
+            if (localStorage.getItem('token')) {
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                loadDocuments();
+            } else {
+                document.getElementById('loginScreen').classList.remove('hidden');
+                document.getElementById('mainApp').classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
